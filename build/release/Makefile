@@ -54,7 +54,7 @@ REMOTE_NAME ?= origin
 PLATFORMS ?= $(ALL_PLATFORMS)
 
 ifneq ($(filter master release-%,$(BRANCH_NAME)),)
-FLAVORS ?= output images
+FLAVORS ?= output images docs
 else
 FLAVORS ?= output
 override BRANCH_NAME := pr/$(BRANCH_NAME)
@@ -114,6 +114,20 @@ endif
 		git branch -f release-$(VERSION_MAJOR).$(VERSION_MINOR) $(COMMIT_HASH) ;\
 		git push $(REMOTE_NAME) release-$(VERSION_MAJOR).$(VERSION_MINOR) ;\
 	fi
+
+# ====================================================================================
+# docs
+
+build.docs:
+	rm -rf $(DOCS_WORK_DIR)
+	mkdir -p $(DOCS_WORK_DIR)
+	git clone --depth=1 -b master $(DOCS_GIT_REPO) $(DOCS_WORK_DIR)
+	rm -rf $(DOCS_VERSION_DIR)
+	cp -r $(DOCS_DIR)/ $(DOCS_VERSION_DIR)
+	cd $(DOCS_WORK_DIR) && DOCS_VERSION=$(DOCS_VERSION) $(MAKE) _data/projects.json
+
+publish.docs:
+	cd $(DOCS_WORK_DIR) && DOCS_VERSION=$(DOCS_VERSION) $(MAKE) publish
 
 # ====================================================================================
 # output
